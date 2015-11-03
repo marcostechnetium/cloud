@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+  <title>Technetium - Demo</title>
+</head>
+<body>
+
+  <h1>TECHNETIUM - DEMO SENSOR MAGNETICO</h1>
+  <!-- prerequisites -->
+  <link rel="stylesheet" href="http://www.amcharts.com/lib/style.css" type="text/css">
+  <script src="http://www.amcharts.com/lib/3/amcharts.js" type="text/javascript"></script>
+  <script src="http://www.amcharts.com/lib/3/serial.js" type="text/javascript"></script>
+
+  <!-- cutom functions -->
+  <script>
+  AmCharts.loadJSON = function(url) {
+    // create the request
+    if (window.XMLHttpRequest) {
+      // IE7+, Firefox, Chrome, Opera, Safari
+      var request = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      var request = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+
+    // load it
+    // the last "false" parameter ensures that our code will wait before the
+    // data is loaded
+    request.open('GET', url, false);
+    request.send();
+
+    // parse adn return the output
+    return eval(request.responseText);
+  };
+  </script>
+
+  <!-- chart container -->
+  <h2>Mediciones de temperatura en tiempo real</h2>
+  <div id="chartMin" style="width: 1100px; height: 300px;"></div>
+  <h2>Mediciones de temperatura historicas</h2>
+  <div id="chartdiv" style="width: 1150px; height: 300px;"></div>
+
+  <!-- the chart code -->
+  <script>
+  var chartMin;
+
+  // create chart
+  AmCharts.ready(function() {
+
+    // load the data
+    var chartMinData = AmCharts.loadJSON('magneticData.php');
+
+    // SERIAL CHART
+    chartMin = new AmCharts.AmSerialChart();
+    chartMin.pathToImages = "http://www.amcharts.com/lib/images/";
+    chartMin.dataProvider = chartMinData;
+    chartMin.categoryField = "timeStamp";
+    chartMin.dataDateFormat = "YYYY-MM-DD HH:NN:SS";
+
+    // GRAPH X
+
+    var graphX = new AmCharts.AmGraph();
+    graphX.valueField = "xValue";
+    graphX.bullet = "round";
+    graphX.bulletBorderColor = "#FF8000";
+    graphX.bulletBorderThickness = 2;
+    graphX.lineThickness = 2;
+    graphX.lineAlpha = 0.5;
+    chartMin.addGraph(graphX);
+
+    // GRAPH Y
+
+    var graphY = new AmCharts.AmGraph();
+    graphY.valueField = "yValue";
+    graphY.bullet = "round";
+    graphY.bulletBorderColor = "#AAF200";
+    graphY.bulletBorderThickness = 2;
+    graphY.lineThickness = 2;
+    graphY.lineAlpha = 0.5;
+    chartMin.addGraph(graphY);
+
+    // GRAPH Z
+
+    var graphMin = new AmCharts.AmGraph();
+    graphMin.valueField = "zValue";
+    graphMin.bullet = "round";
+    graphMin.bulletBorderColor = "#FFCF75";
+    graphMin.bulletBorderThickness = 2;
+    graphMin.lineThickness = 2;
+    graphMin.lineAlpha = 0.5;
+    chartMin.addGraph(graphMin);
+
+
+    // CATEGORY AXIS
+    chartMin.categoryAxis.parseDates = true;
+    chartMin.categoryAxis.minPeriod = 'ss';
+
+    // CURSOR
+    chartCursor = new AmCharts.ChartCursor();
+    //  chartCursor.cursorPosition = "mouse";
+    chartCursor.categoryBalloonDateFormat= "YYYY-MM-DD HH:NN:SS";
+    chartMin.addChartCursor(chartCursor);
+
+    // WRITE
+    chartMin.write("chartMin");
+
+    setInterval(function () {
+      chartMin.dataProvider = AmCharts.loadJSON('magneticData.php');
+      chartMin.validateData();
+    }, 1000);
+
+
+
+  });
+
+</script>
+
+</body>
+</html>

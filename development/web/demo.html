@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+  <title>Technetium - Demo</title>
+</head>
+<body>
+
+  <h1>TECHNETIUM - DEMO SENSOR DE TEMPERATURA</h1>
+
+  <!-- prerequisites -->
+  <link rel="stylesheet" href="http://www.amcharts.com/lib/style.css" type="text/css">
+  <script src="http://www.amcharts.com/lib/3/amcharts.js" type="text/javascript"></script>
+  <script src="http://www.amcharts.com/lib/3/serial.js" type="text/javascript"></script>
+
+  <!-- cutom functions -->
+  <script>
+  AmCharts.loadJSON = function(url) {
+    // create the request
+    if (window.XMLHttpRequest) {
+      // IE7+, Firefox, Chrome, Opera, Safari
+      var request = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      var request = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+
+    // load it
+    // the last "false" parameter ensures that our code will wait before the
+    // data is loaded
+    request.open('GET', url, false);
+    request.send();
+
+    // parse adn return the output
+    return eval(request.responseText);
+  };
+  </script>
+
+  <!-- chart container -->
+  <h2>Mediciones de temperatura en tiempo real</h2>
+  <div id="chartMin" style="width: 1100px; height: 300px;"></div>
+  <h2>Mediciones de temperatura historicas</h2>
+  <div id="chartdiv" style="width: 1150px; height: 300px;"></div>
+
+  <!-- the chart code -->
+  <script>
+  var chartMin;
+
+  // create chart
+  AmCharts.ready(function() {
+
+    // load the data
+    var chartMinData = AmCharts.loadJSON('dataMin.php');
+
+    // SERIAL CHART
+    chartMin = new AmCharts.AmSerialChart();
+    chartMin.pathToImages = "http://www.amcharts.com/lib/images/";
+    chartMin.dataProvider = chartMinData;
+    chartMin.categoryField = "timeStamp";
+    chartMin.dataDateFormat = "YYYY-MM-DD HH:NN:SS";
+
+    // GRAPHS
+
+    var graphMin = new AmCharts.AmGraph();
+    graphMin.valueField = "measure";
+    graphMin.bullet = "round";
+    graphMin.bulletBorderColor = "#FFFFFF";
+    graphMin.bulletBorderThickness = 2;
+    graphMin.lineThickness = 2;
+    graphMin.lineAlpha = 0.5;
+    chartMin.addGraph(graphMin);
+
+    // CATEGORY AXIS
+    chartMin.categoryAxis.parseDates = true;
+    chartMin.categoryAxis.minPeriod = 'mm';
+
+    // CURSOR
+    chartCursor = new AmCharts.ChartCursor();
+    //  chartCursor.cursorPosition = "mouse";
+    chartCursor.categoryBalloonDateFormat= "YYYY-MM-DD HH:NN";
+    chartMin.addChartCursor(chartCursor);
+
+    // WRITE
+    chartMin.write("chartMin");
+
+    setInterval(function () {
+      chartMin.dataProvider = AmCharts.loadJSON('dataMin.php');
+      chartMin.validateData();
+    }, 1000);
+
+
+
+  });
+
+</script>
+
+
+
+<script>
+//var chartData = generateChartData();
+var chartData = AmCharts.loadJSON('data.php');
+var chart = AmCharts.makeChart("chartdiv", {
+  "type": "serial",
+  "theme": "dark",
+  "marginRight": 80,
+  "autoMarginOffset": 20,
+  "marginTop": 7,
+  "dataProvider": chartData,
+  "dataDateFormat": "YYYY-MM-DD HH:NN:SS",
+  "valueAxes": [{
+    "axisAlpha": 0.2,
+    "dashLength": 1,
+    "position": "left"
+  }],
+  "mouseWheelZoomEnabled": true,
+  "graphs": [{
+    "id": "g1",
+    "balloonText": "[[category]]<br/><b><span style='font-size:14px;'>value: [[value]]</span></b>",
+    "bullet": "round",
+    "bulletBorderAlpha": 1,
+    "bulletColor": "#FFFFFF",
+    "hideBulletsCount": 50,
+    "title": "red line",
+    "valueField": "measure",
+    "useLineColorForBulletBorder": true
+  }],
+  "chartScrollbar": {
+    "autoGridCount": true,
+    "graph": "g1",
+    "scrollbarHeight": 40
+  },
+  "chartCursor": {
+    "categoryBalloonDateFormat": "YYYY-MM-DD HH:NN"
+  },
+  "categoryField": "timeStamp",
+  "categoryAxis": {
+    "parseDates": true,
+    "axisColor": "#DADADA",
+    "dashLength": 1,
+    "minorGridEnabled": true,
+    "minPeriod" : "mm"
+  },
+  "export": {
+    "enabled": true
+  }
+});
+
+chart.addListener("rendered", zoomChart);
+zoomChart();
+
+// this method is called when chart is first inited as we listen for "rendered" event
+function zoomChart() {
+  // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
+  chart.zoomToIndexes(chartData.length - 40, chartData.length - 1);
+}
+
+</script>
+
+
+</body>
+</html>
